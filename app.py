@@ -11,8 +11,10 @@ from pymongo import MongoClient
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
-    import en_core_web_sm
-    nlp = en_core_web_sm.load()
+    # fallback if somehow not installed
+    from spacy.cli import download
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 # ----------------------------
 # MongoDB Connection
