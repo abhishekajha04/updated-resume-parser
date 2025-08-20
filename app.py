@@ -1,15 +1,21 @@
 import fitz  # PyMuPDF
 import spacy
-import en_core_web_sm  # Load SpaCy model directly
+import streamlit as st
 import pandas as pd
 import re
-import streamlit as st
 from pymongo import MongoClient
 
 # ----------------------------
 # Load SpaCy model safely
 # ----------------------------
-nlp = en_core_web_sm.load()
+try:
+    import en_core_web_sm
+    nlp = en_core_web_sm.load()
+except ImportError:
+    import spacy.cli
+    spacy.cli.download("en_core_web_sm")
+    import en_core_web_sm
+    nlp = en_core_web_sm.load()
 
 # ----------------------------
 # MongoDB Connection
