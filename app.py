@@ -6,15 +6,9 @@ import streamlit as st
 from pymongo import MongoClient
 
 # ----------------------------
-# Load SpaCy model safely
+# Load SpaCy model (already installed via requirements.txt)
 # ----------------------------
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    # fallback if somehow not installed
-    from spacy.cli import download
-    download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+nlp = spacy.load("en_core_web_sm")
 
 # ----------------------------
 # MongoDB Connection
