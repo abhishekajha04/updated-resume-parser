@@ -3,4 +3,4 @@ pymongo[srv]==4.10.1
 pandas==2.2.2
 PyMuPDF==1.24.9
 spacy==3.8.0
-./models/en_core_web_sm-3.8.0-py3-none-any.whl
+./model/en_core_web_sm-3.8.0-py3-none-any.whl
