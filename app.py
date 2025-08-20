@@ -3,34 +3,30 @@ import spacy
 import pandas as pd
 import re
 import streamlit as st
-from io import BytesIO
 from pymongo import MongoClient
 
 # ----------------------------
 # Load SpaCy model safely
 # ----------------------------
-from spacy.cli import download
-
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
-    download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+    import en_core_web_sm
+    nlp = en_core_web_sm.load()
 
 # ----------------------------
 # MongoDB Connection
 # ----------------------------
 @st.cache_resource
 def init_connection():
-    # Change this to your MongoDB URI
     client = MongoClient(
         "mongodb+srv://infoolinp:StMxx33r0rolkwIN@hiring-bazzar-db.qocfcad.mongodb.net/?retryWrites=true&w=majority&appName=hiring-bazzar-db"
     )
     return client
 
 client = init_connection()
-db = client["resumeDB"]              # Database
-collection = db["parsedResumes"]     # Collection
+db = client["resumeDB"]
+collection = db["parsedResumes"]
 
 # ----------------------------
 # Extract text from PDF
@@ -78,7 +74,7 @@ def extract_entities(text):
     ]
     found_skills = set()
     for skill in skills_db:
-        if re.search(re.escape(skill), text, re.IGNORECASE):
+        if re.search(r"\b" + re.escape(skill) + r"\b", text, re.IGNORECASE):
             found_skills.add(skill)
     entities["SKILLS"] = list(found_skills)
 
