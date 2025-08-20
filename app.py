@@ -6,8 +6,16 @@ import streamlit as st
 from io import BytesIO
 from pymongo import MongoClient
 
-# Load SpaCy model
-nlp = spacy.load("en_core_web_sm")
+# ----------------------------
+# Load SpaCy model safely
+# ----------------------------
+from spacy.cli import download
+
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 # ----------------------------
 # MongoDB Connection
@@ -15,12 +23,14 @@ nlp = spacy.load("en_core_web_sm")
 @st.cache_resource
 def init_connection():
     # Change this to your MongoDB URI
-    client = MongoClient("mongodb+srv://infoolinp:StMxx33r0rolkwIN@hiring-bazzar-db.qocfcad.mongodb.net/?retryWrites=true&w=majority&appName=hiring-bazzar-db")
+    client = MongoClient(
+        "mongodb+srv://infoolinp:StMxx33r0rolkwIN@hiring-bazzar-db.qocfcad.mongodb.net/?retryWrites=true&w=majority&appName=hiring-bazzar-db"
+    )
     return client
 
 client = init_connection()
-db = client["resumeDB"]       # Database
-collection = db["parsedResumes"]  # Collection
+db = client["resumeDB"]              # Database
+collection = db["parsedResumes"]     # Collection
 
 # ----------------------------
 # Extract text from PDF
@@ -33,13 +43,13 @@ def extract_text(pdf_file):
     return text
 
 # ----------------------------
-# Extract entities with better logic
+# Extract entities from text
 # ----------------------------
 def extract_entities(text):
     doc = nlp(text)
     entities = {"NAME": "", "EMAIL": "", "PHONE": "", "SKILLS": [], "EDUCATION": [], "EXPERIENCE": []}
 
-    # Name
+    # Name extraction
     lines = text.strip().split("\n")
     if lines:
         first_line = lines[0].strip()
@@ -68,7 +78,7 @@ def extract_entities(text):
     ]
     found_skills = set()
     for skill in skills_db:
-        if re.search(r"\b" + re.escape(skill) + r"\b", text, re.IGNORECASE):
+        if re.search(re.escape(skill), text, re.IGNORECASE):
             found_skills.add(skill)
     entities["SKILLS"] = list(found_skills)
 
@@ -85,7 +95,10 @@ def extract_entities(text):
     entities["EDUCATION"] = list(set(found_edu))
 
     # Experience
-    exp_patterns = re.findall(r"((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s?\d{4})", text, re.IGNORECASE)
+    exp_patterns = re.findall(
+        r"((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s?\d{4})",
+        text, re.IGNORECASE
+    )
     orgs = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
     if orgs:
         entities["EXPERIENCE"].extend(list(set(orgs)))
@@ -95,7 +108,7 @@ def extract_entities(text):
     return entities
 
 # ----------------------------
-# Streamlit App
+# Streamlit App UI
 # ----------------------------
 st.title("📄 Advanced Resume Parser")
 st.write("Upload PDF resumes to extract Name, Email, Phone, Skills, Education, Experience.")
